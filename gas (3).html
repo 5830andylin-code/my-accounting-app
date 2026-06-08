@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧財務與 GAS 股票管家</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-24">
+
+    <!-- 頂部導覽列 -->
+    <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-4 py-3.5 shadow-sm">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+                <div class="bg-indigo-600 text-white p-2 rounded-xl shadow-md shadow-indigo-100">
+                    <i data-lucide="wallet" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-slate-900 tracking-wide">智慧財務管家</h1>
+                    <p class="text-[10px] text-indigo-600 font-medium tracking-wider">SECURE LOCAL LEDGER & STOCK</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleTab('settings')" class="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主內容區 -->
+    <main class="flex-1 max-w-md w-full mx-auto px-4 py-4 space-y-4">
+
+        <!-- 頁籤一：資產大盤 -->
+        <section id="tab-dashboard" class="space-y-4 tab-content">
+            <!-- 總資產看板 -->
+            <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-800 rounded-3xl p-5 text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 text-white/5 pointer-events-none">
+                    <i data-lucide="trending-up" class="w-36 h-36"></i>
+                </div>
+                <p class="text-xs text-indigo-200/90 font-medium tracking-wider">估算總資產 (TWD)</p>
+                <h2 id="total-net-worth" class="text-3xl font-black mt-1 tracking-tight">$0</h2>
+                
+                <div class="grid grid-cols-2 gap-4 mt-6 pt-5 border-t border-indigo-500/30">
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-[9px] text-indigo-200/80 block">身上現金 💵</span>
+                            <span id="dash-cash-on-hand" class="text-sm font-bold">$0</span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-indigo-200/80 block">台幣帳戶 🏦</span>
+                            <span id="dash-account-twd" class="text-sm font-bold">$0</span>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-[9px] text-indigo-200/80 block">外幣帳戶 (折合台幣) 💱</span>
+                            <span id="dash-account-foreign" class="text-sm font-bold">$0</span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-indigo-200/80 block">股票庫存估值 📈</span>
+                            <span id="dash-stock-val" class="text-sm font-bold">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快捷記帳 -->
+            <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
+                <h3 class="text-xs font-bold text-slate-400 mb-3 tracking-wider uppercase">快捷財務操作</h3>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <button onclick="openTransactionModal('expense')" class="flex items-center justify-center space-x-2 py-3 px-4 bg-rose-50 text-rose-600 hover:bg-rose-100/80 rounded-xl font-bold text-sm transition-colors">
+                        <i data-lucide="arrow-down-right" class="w-4 h-4"></i>
+                        <span>記一筆支出</span>
+                    </button>
+                    <button onclick="openTransactionModal('income')" class="flex items-center justify-center space-x-2 py-3 px-4 bg-emerald-50 text-emerald-600 hover:bg-emerald-100/80 rounded-xl font-bold text-sm transition-colors">
+                        <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                        <span>記一筆收入</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 最近收支流向 -->
+            <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase">最近收支流水</h3>
+                    <button onclick="toggleTab('ledger')" class="text-xs text-indigo-600 font-semibold flex items-center space-x-1">
+                        <span>看全部</span>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+                <div id="dashboard-recent-ledger" class="space-y-2.5">
+                    <p class="text-xs text-slate-400 text-center py-4">目前尚無記帳紀錄</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 頁籤二：現金流水帳 -->
+        <section id="tab-ledger" class="tab-content hidden space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">收支明細清單</h2>
+                    <p id="ledger-balance-sub" class="text-xs text-slate-500">當前記帳累計變動: $0</p>
+                </div>
+                <button onclick="clearAllLedger()" class="text-xs text-rose-500 font-medium hover:underline flex items-center space-x-1">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    <span>清空歷史</span>
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div id="full-ledger-list" class="divide-y divide-slate-100 max-h-[60vh] overflow-y-auto no-scrollbar"></div>
+            </div>
+        </section>
+
+        <!-- 頁籤三：股票證券資產 -->
+        <section id="tab-stock" class="tab-content hidden space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">台美股庫存明細</h2>
+                    <p id="portfolio-summary-text" class="text-xs text-slate-500">市值估算: $0 (0 檔持股)</p>
+                </div>
+                <button onclick="openAddStockModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm flex items-center space-x-1 transition-all">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    <span>新增持股</span>
+                </button>
+            </div>
+
+            <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="flex h-2.5 w-2.5 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-xs font-semibold text-indigo-900">雲端對接中心</span>
+                </div>
+                <button onclick="fetchLatestStockPrices()" class="bg-white hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center space-x-1">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                    <span>一鍵同步雲端股價</span>
+                </button>
+            </div>
+
+            <div id="stock-list-container" class="space-y-3">
+                <p class="text-xs text-slate-400 text-center py-8 bg-white rounded-2xl border border-dashed border-slate-200">
+                    目前證券庫存為空，請點選「新增持股」開始登記！
+                </p>
+            </div>
+
+            <!-- 個股詳細診斷報告卡片區 -->
+            <div id="stock-detail-panel" class="hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 animate-in fade-in duration-200">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xl">📊</span>
+                        <h4 class="font-bold text-slate-800 text-sm">
+                            持股細部回顧：<span id="detail-stock-title" class="text-indigo-600">無選擇</span>
+                        </h4>
+                    </div>
+                    <button onclick="closeStockDetailPanel()" class="text-slate-400 hover:text-slate-600 text-xs font-bold">✕ 關閉</button>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                        <span class="text-slate-400 block mb-1">佔證券總資產比重</span>
+                        <span id="detail-stock-ratio" class="font-bold text-slate-700 text-sm">0%</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                        <span class="text-slate-400 block mb-1">投資成本</span>
+                        <span id="detail-stock-cost" class="font-bold text-slate-700 text-sm">$0</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                        <span class="text-slate-400 block mb-1">目前市值</span>
+                        <span id="detail-stock-value" class="font-bold text-slate-700 text-sm">$0</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                        <span class="text-slate-400 block mb-1">未實現損益</span>
+                        <span id="detail-stock-profit" class="font-bold text-sm">$0</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 頁籤四：設定 -->
+        <section id="tab-settings" class="tab-content hidden space-y-4">
+            <h2 class="text-lg font-bold text-slate-900">系統配置與設定</h2>
+
+            <!-- 初始資產配置調整 -->
+            <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm space-y-4">
+                <div class="flex items-center space-x-2 text-slate-800">
+                    <i data-lucide="coins" class="w-4 h-4 text-indigo-600"></i>
+                    <h3 class="text-sm font-bold">💰 初始資產與預算設定</h3>
+                </div>
+                <div class="space-y-3.5 text-xs">
+                    <div>
+                        <label class="block font-semibold text-slate-500 mb-1">身上現金 💵 ($)</label>
+                        <input type="number" id="settings-cash-on-hand" placeholder="輸入身上現鈔餘額" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-500 mb-1">台幣帳戶資產 🏦 ($)</label>
+                        <input type="number" id="settings-account-twd" placeholder="輸入台幣存款餘額" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-500 mb-1">外幣帳戶資產 (折合台幣) 💱 ($)</label>
+                        <input type="number" id="settings-account-foreign" placeholder="輸入外國資產折合台幣總額" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                    </div>
+                    <button onclick="saveAssetSettings()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition-colors">
+                        儲存初始配置
+                    </button>
+                </div>
+            </div>
+
+            <!-- GAS API 配置卡片 -->
+            <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm space-y-3">
+                <div class="flex items-center space-x-2 text-slate-800">
+                    <i data-lucide="link-2" class="w-4 h-4 text-indigo-600"></i>
+                    <h3 class="text-sm font-bold">Google Apps Script (GAS) API</h3>
+                </div>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    請將您在 Google 試算表部署好的 GAS Web App 部署網址（URL）貼在下方：
+                </p>
+                <input type="text" id="gas-url-input" placeholder="https://script.google.com/macros/s/..." class="w-full text-xs px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                <button onclick="saveGasUrl()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs py-2.5 rounded-lg transition-all">
+                    儲存 API 串接設定
+                </button>
+            </div>
+
+            <!-- 調試日誌 -->
+            <div class="bg-slate-900 text-slate-300 rounded-xl p-4 border border-slate-800 shadow-sm space-y-2 font-mono text-[11px]">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-1.5 mb-1.5">
+                    <div class="flex items-center space-x-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        <span class="font-bold text-slate-400 pl-1">API 同步紀錄日誌</span>
+                    </div>
+                    <button onclick="clearLogs()" class="text-[9px] text-slate-500 hover:text-slate-300 underline">清除</button>
+                </div>
+                <div id="terminal-logs" class="space-y-1 max-h-36 overflow-y-auto no-scrollbar">
+                    <div class="text-slate-500">&gt; 系統就緒。等候呼叫串接指令...</div>
+                </div>
+            </div>
+
+            <!-- 資料備份與恢復 -->
+            <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm space-y-3">
+                <div class="flex items-center space-x-2 text-slate-800">
+                    <i data-lucide="database" class="w-4 h-4 text-emerald-600"></i>
+                    <h3 class="text-sm font-bold">本機資料安全管理</h3>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="exportData()" class="border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs py-2 rounded-lg transition-colors flex items-center justify-center space-x-1">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        <span>備份資料</span>
+                    </button>
+                    <button onclick="triggerImport()" class="border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs py-2 rounded-lg transition-colors flex items-center justify-center space-x-1">
+                        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                        <span>還原資料</span>
+                    </button>
+                    <input type="file" id="import-file-input" class="hidden" accept=".json" onchange="importData(event)">
+                </div>
+                <button onclick="triggerResetAll()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold py-2.5 rounded-lg transition-all">
+                    ⚠️ 清空重設所有數據
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 底部導覽 -->
+    <nav class="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-lg px-2 py-2.5 z-40">
+        <div class="max-w-md mx-auto grid grid-cols-4 gap-1">
+            <button id="nav-dashboard" onclick="toggleTab('dashboard')" class="flex flex-col items-center justify-center space-y-1 text-indigo-600 transition-colors">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold">資產大盤</span>
+            </button>
+            <button id="nav-ledger" onclick="toggleTab('ledger')" class="flex flex-col items-center justify-center space-y-1 text-slate-400 transition-colors">
+                <i data-lucide="list-ordered" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">現金記帳</span>
+            </button>
+            <button id="nav-stock" onclick="toggleTab('stock')" class="flex flex-col items-center justify-center space-y-1 text-slate-400 transition-colors">
+                <i data-lucide="candlestick-chart" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">股票證券</span>
+            </button>
+            <button id="nav-settings" onclick="toggleTab('settings')" class="flex flex-col items-center justify-center space-y-1 text-slate-400 transition-colors">
+                <i data-lucide="sliders" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">設定</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 自訂 Alert 彈窗 -->
+    <div id="custom-alert-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-150">
+        <div class="bg-white w-full max-w-xs rounded-2xl p-5 shadow-xl text-center space-y-4 transform transition-all scale-95 opacity-0 duration-200" id="alert-content-box">
+            <div class="mx-auto w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600">
+                <i data-lucide="info" class="w-6 h-6" id="alert-icon"></i>
+            </div>
+            <div>
+                <h4 id="alert-title" class="text-sm font-bold text-slate-900">通知</h4>
+                <p id="alert-message" class="text-xs text-slate-500 mt-1 leading-relaxed">內文訊息</p>
+            </div>
+            <button onclick="closeAlertModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs py-2.5 rounded-xl transition-all">確定</button>
+        </div>
+    </div>
+
+    <!-- 記帳交易彈窗 -->
+    <div id="transaction-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end justify-center p-0 hidden">
+        <div class="bg-white w-full max-w-md rounded-t-2xl p-5 space-y-4 shadow-xl transform translate-y-full transition-all duration-300" id="transaction-box">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 id="transaction-modal-title" class="text-base font-bold text-slate-900">記一筆支出</h3>
+                <button onclick="closeTransactionModal()" class="p-1.5 text-slate-400 hover:bg-slate-100 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <!-- 金額 -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">金額 (TWD)</label>
+                    <input type="number" id="tx-amount" placeholder="0" class="w-full text-base font-bold px-3 py-2 border border-slate-200 rounded-xl focus:outline-none">
+                </div>
+                <!-- 管道分流選擇 -->
+                <div>
+                    <label id="label-tx-source" class="block text-xs font-semibold text-slate-500 mb-1">扣款管道 (資金來源)</label>
+                    <select id="tx-source" class="w-full text-xs px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none bg-slate-50">
+                        <option value="cash">身上現金 💵</option>
+                        <option value="twd">台幣帳戶 🏦</option>
+                        <option value="foreign">外幣帳戶 💱</option>
+                    </select>
+                </div>
+                <!-- 說明描述 -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">說明/類別描述</label>
+                    <input type="text" id="tx-desc" placeholder="例如：午餐、薪水、飲料" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-xl focus:outline-none">
+                </div>
+            </div>
+            <button id="submit-tx-btn" onclick="saveTransaction()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-lg transition-all">確認入帳</button>
+        </div>
+    </div>
+
+    <!-- 新增持股彈窗 -->
+    <div id="stock-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end justify-center p-0 hidden">
+        <div class="bg-white w-full max-w-md rounded-t-2xl p-5 space-y-4 shadow-xl transform translate-y-full transition-all duration-300" id="stock-box">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-900">新增證券持股</h3>
+                <button onclick="closeStockModal()" class="p-1.5 text-slate-400 hover:bg-slate-100 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">股票代號 (如: 2330)</label>
+                        <input type="text" id="stock-code" placeholder="2330" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-xl focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">股票名稱 (選填)</label>
+                        <input type="text" id="stock-name" placeholder="台積電" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-xl focus:outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">持股股數 (股)</label>
+                        <input type="number" id="stock-shares" placeholder="1000" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-xl focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">平均買進成本 (元)</label>
+                        <input type="number" step="0.01" id="stock-cost" placeholder="成本均價" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-xl focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">手動現價估計 (元)</label>
+                    <input type="number" step="0.01" id="stock-price" placeholder="價格" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-xl focus:outline-none">
+                </div>
+            </div>
+            <button onclick="saveStock()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-lg transition-all">登記確認</button>
+        </div>
+    </div>
+
+    <!-- 自訂確認視窗 -->
+    <div id="custom-confirm" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-150">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center space-y-4 border border-slate-100">
+            <div class="text-slate-500 text-4xl flex justify-center">❓</div>
+            <p id="custom-confirm-message" class="text-slate-700 font-medium text-sm"></p>
+            <div class="grid grid-cols-2 gap-3">
+                <button id="confirm-yes-btn" class="bg-rose-500 text-white py-2 rounded-xl text-sm font-semibold hover:bg-rose-600">確定</button>
+                <button onclick="closeConfirm()" class="bg-slate-100 text-slate-600 py-2 rounded-xl text-sm font-semibold hover:bg-slate-200">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 本機資料初始化 (初始零起點，不設定任何測試數據)
+        let ledger = JSON.parse(localStorage.getItem('my_ledger')) || [];
+        let stocks = JSON.parse(localStorage.getItem('my_stocks')) || [];
+        let gasUrl = localStorage.getItem('my_gas_url') || '';
+        
+        let cashOnHand = Number(localStorage.getItem('my_cash_on_hand')) || 0;
+        let accountTwd = Number(localStorage.getItem('my_account_twd')) || 0;
+        let accountForeign = Number(localStorage.getItem('my_account_foreign')) || 0;
+        let budget = Number(localStorage.getItem('my_budget')) || 0;
+
+        let currentTxType = 'expense';
+        let selectedStockId = null;
+
+        window.addEventListener('load', () => {
+            lucide.createIcons();
+            document.getElementById('gas-url-input').value = gasUrl;
+            
+            // 將本機值渲染在設定畫面
+            document.getElementById('settings-cash-on-hand').value = cashOnHand || '';
+            document.getElementById('settings-account-twd').value = accountTwd || '';
+            document.getElementById('settings-account-foreign').value = accountForeign || '';
+            
+            renderAll();
+        });
+
+        // 頁籤控制
+        function toggleTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+            const navs = ['dashboard', 'ledger', 'stock', 'settings'];
+            navs.forEach(nav => {
+                const btn = document.getElementById(`nav-${nav}`);
+                if (nav === tabName) {
+                    btn.classList.add('text-indigo-600');
+                    btn.classList.remove('text-slate-400');
+                    btn.querySelector('span').classList.add('font-bold');
+                } else {
+                    btn.classList.add('text-slate-400');
+                    btn.classList.remove('text-indigo-600');
+                    btn.querySelector('span').classList.remove('font-bold');
+                }
+            });
+        }
+
+        // ==================== 自訂彈窗與提示 ====================
+        function showCustomAlert(title, message, iconType = 'info') {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-message').innerText = message;
+            
+            const iconEl = document.getElementById('alert-icon');
+            if (iconType === 'error') {
+                iconEl.setAttribute('data-lucide', 'alert-triangle');
+                iconEl.parentElement.className = 'mx-auto w-12 h-12 bg-rose-50 rounded-full flex items-center justify-center text-rose-600';
+            } else {
+                iconEl.setAttribute('data-lucide', 'info');
+                iconEl.parentElement.className = 'mx-auto w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600';
+            }
+            lucide.createIcons();
+
+            const modal = document.getElementById('custom-alert-modal');
+            const box = document.getElementById('alert-content-box');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeAlertModal() {
+            const box = document.getElementById('alert-content-box');
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                document.getElementById('custom-alert-modal').classList.add('hidden');
+            }, 200);
+        }
+
+        let confirmCallback = null;
+        function showConfirm(msg, onYes) {
+            document.getElementById('custom-confirm-message').innerText = msg;
+            document.getElementById('custom-confirm').classList.remove('hidden');
+            confirmCallback = onYes;
+        }
+        document.getElementById('confirm-yes-btn').onclick = function() {
+            if (confirmCallback) confirmCallback();
+            closeConfirm();
+        };
+        function closeConfirm() {
+            document.getElementById('custom-confirm').classList.add('hidden');
+            confirmCallback = null;
+        }
+
+        // ==================== 日誌記錄器 ====================
+        function logToConsole(message, type = 'info') {
+            const logsContainer = document.getElementById('terminal-logs');
+            const timestamp = new Date().toLocaleTimeString();
+            let colorClass = 'text-slate-300';
+            let prefix = '⚙️';
+
+            if (type === 'error') {
+                colorClass = 'text-rose-400 font-semibold';
+                prefix = '❌';
+            } else if (type === 'success') {
+                colorClass = 'text-emerald-400 font-semibold';
+                prefix = '✨';
+            } else if (type === 'net') {
+                colorClass = 'text-indigo-300';
+                prefix = '🌐';
+            }
+
+            const logElement = document.createElement('div');
+            logElement.className = `${colorClass} py-0.5 leading-relaxed`;
+            logElement.innerHTML = `<span class="text-slate-600">[${timestamp}]</span> ${prefix} ${message}`;
+            logsContainer.appendChild(logElement);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('terminal-logs').innerHTML = `<div class="text-slate-500">&gt; 調試日誌已排空。等候新任務...</div>`;
+        }
+
+        // ==================== 現金記帳邏輯 ====================
+        function openTransactionModal(type) {
+            currentTxType = type;
+            document.getElementById('transaction-modal-title').innerText = type === 'expense' ? '記一筆支出 (TWD)' : '記一筆收入 (TWD)';
+            const submitBtn = document.getElementById('submit-tx-btn');
+            const sourceLabel = document.getElementById('label-tx-source');
+
+            if (type === 'expense') {
+                submitBtn.className = "w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl shadow-lg transition-all";
+                sourceLabel.innerText = "扣款管道 (資金來源)";
+            } else {
+                submitBtn.className = "w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-lg transition-all";
+                sourceLabel.innerText = "入帳管道 (資金去向)";
+            }
+
+            const modal = document.getElementById('transaction-modal');
+            const box = document.getElementById('transaction-box');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('translate-y-full');
+            }, 10);
+        }
+
+        function closeTransactionModal() {
+            const box = document.getElementById('transaction-box');
+            box.classList.add('translate-y-full');
+            setTimeout(() => {
+                document.getElementById('transaction-modal').classList.add('hidden');
+            }, 300);
+            document.getElementById('tx-amount').value = '';
+            document.getElementById('tx-desc').value = '';
+        }
+
+        function saveTransaction() {
+            const amount = parseFloat(document.getElementById('tx-amount').value);
+            const desc = document.getElementById('tx-desc').value.trim() || '未分類交易';
+            const source = document.getElementById('tx-source').value;
+
+            if (isNaN(amount) || amount <= 0) {
+                showCustomAlert('提醒', '請輸入正確金額喔！', 'error');
+                return;
+            }
+
+            const newTx = {
+                id: Date.now(),
+                type: currentTxType,
+                amount: amount,
+                desc: desc,
+                source: source,
+                date: new Date().toLocaleDateString()
+            };
+
+            ledger.unshift(newTx);
+            localStorage.setItem('my_ledger', JSON.stringify(ledger));
+            closeTransactionModal();
+            renderAll();
+            logToConsole(`新增交易: ${desc} ${currentTxType === 'expense' ? '-' : '+'}$${amount}`, 'success');
+        }
+
+        function deleteLedgerItem(id) {
+            ledger = ledger.filter(item => item.id !== id);
+            localStorage.setItem('my_ledger', JSON.stringify(ledger));
+            renderAll();
+            logToConsole('已移除交易紀錄', 'info');
+        }
+
+        function clearAllLedger() {
+            showConfirm('確定要清空所有的現金記帳明細嗎？此操作不可逆。', () => {
+                ledger = [];
+                localStorage.setItem('my_ledger', JSON.stringify(ledger));
+                renderAll();
+                logToConsole('歷史收支已清空', 'error');
+            });
+        }
+
+        // ==================== 證券庫存邏輯 ====================
+        function openAddStockModal() {
+            const modal = document.getElementById('stock-modal');
+            const box = document.getElementById('stock-box');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('translate-y-full');
+            }, 10);
+        }
+
+        function closeStockModal() {
+            const box = document.getElementById('stock-box');
+            box.classList.add('translate-y-full');
+            setTimeout(() => {
+                document.getElementById('stock-modal').classList.add('hidden');
+            }, 300);
+            document.getElementById('stock-code').value = '';
+            document.getElementById('stock-name').value = '';
+            document.getElementById('stock-shares').value = '';
+            document.getElementById('stock-cost').value = '';
+            document.getElementById('stock-price').value = '';
+        }
+
+        function saveStock() {
+            const code = document.getElementById('stock-code').value.trim().toUpperCase();
+            const name = document.getElementById('stock-name').value.trim() || code;
+            const shares = parseInt(document.getElementById('stock-shares').value);
+            const cost = parseFloat(document.getElementById('stock-cost').value);
+            const price = parseFloat(document.getElementById('stock-price').value) || cost || 0;
+
+            if (!code || isNaN(shares) || shares <= 0 || isNaN(cost) || cost < 0) {
+                showCustomAlert('欄位未滿', '請填寫正確代碼、股數及成本！', 'error');
+                return;
+            }
+
+            const existingIdx = stocks.findIndex(s => s.code === code);
+            const newStock = { 
+                id: 's_' + Date.now().toString(),
+                code, 
+                name, 
+                shares, 
+                cost, 
+                price 
+            };
+
+            if (existingIdx > -1) {
+                stocks[existingIdx] = newStock;
+            } else {
+                stocks.push(newStock);
+            }
+
+            localStorage.setItem('my_stocks', JSON.stringify(stocks));
+            closeStockModal();
+            renderAll();
+            logToConsole(`登記股票：${name} (${code}) ${shares}股`, 'success');
+        }
+
+        function deleteStock(code) {
+            stocks = stocks.filter(s => s.code !== code);
+            localStorage.setItem('my_stocks', JSON.stringify(stocks));
+            renderAll();
+            logToConsole(`移出個股: ${code}`, 'info');
+        }
+
+        function saveGasUrl() {
+            const url = document.getElementById('gas-url-input').value.trim();
+            localStorage.setItem('my_gas_url', url);
+            gasUrl = url;
+            showCustomAlert('系統設定', '雲端 GAS API 網址已保存！');
+            logToConsole('儲存 API 網址完成', 'info');
+        }
+
+        // ==================== 初始資產與設定邏輯 ====================
+        function saveAssetSettings() {
+            const cashVal = document.getElementById('settings-cash-on-hand').value;
+            const twdVal = document.getElementById('settings-account-twd').value;
+            const foreignVal = document.getElementById('settings-account-foreign').value;
+
+            const parsedCash = Number(cashVal);
+            const parsedTwd = Number(twdVal);
+            const parsedForeign = Number(foreignVal);
+
+            if (isNaN(parsedCash) || parsedCash < 0 || isNaN(parsedTwd) || parsedTwd < 0 || isNaN(parsedForeign) || parsedForeign < 0) {
+                showCustomAlert('欄位錯誤', '請輸入有效的金額數值！', 'error');
+                return;
+            }
+
+            cashOnHand = parsedCash;
+            accountTwd = parsedTwd;
+            accountForeign = parsedForeign;
+
+            localStorage.setItem('my_cash_on_hand', parsedCash);
+            localStorage.setItem('my_account_twd', parsedTwd);
+            localStorage.setItem('my_account_foreign', parsedForeign);
+
+            renderAll();
+            showCustomAlert('成功', '初始資產配置已儲存更新！');
+            logToConsole('初始資產數據手動校正更新。', 'info');
+        }
+
+        function saveBudgetSetting() {
+            const inputVal = document.getElementById('settings-monthly-budget').value;
+            const parsed = Number(inputVal);
+            if (isNaN(parsed) || parsed < 0) {
+                showCustomAlert('錯誤', '請輸入正確預算數值！', 'error');
+                return;
+            }
+            budget = parsed;
+            localStorage.setItem('my_budget', parsed);
+            renderAll();
+            showCustomAlert('成功', '每月消費預算設定成功！');
+        }
+
+        // ==================== 雲端價格比對處理 ====================
+        function cleanSymbol(symbol) {
+            return String(symbol).replace(/^(TPE:|TSE:|OTCE?:|tpe:|tse:)/i, '').trim().toUpperCase();
+        }
+
+        async function fetchLatestStockPrices() {
+            logToConsole('開始執行遠端同步報價任務...', 'net');
+
+            if (stocks.length === 0) {
+                showCustomAlert('持股清單為空', '請先新增持股庫存再同步報價。', 'error');
+                return;
+            }
+
+            if (!gasUrl) {
+                showCustomAlert('網址未填', '請先至設定頁面填寫 GAS 部署網址！', 'error');
+                return;
+            }
+
+            logToConsole(`連線中 ➜ ${gasUrl.substring(0, 45)}...`, 'net');
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+                const response = await fetch(gasUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 異常，狀態碼: ${response.status}`);
+                }
+
+                const data = await response.json();
+                logToConsole('回傳解密解析成功！對應代號中...', 'info');
+
+                let matchedCount = 0;
+
+                if (Array.isArray(data)) {
+                    data.forEach(item => {
+                        const sheetSymbol = cleanSymbol(item.symbol || item.code || item.股票代號 || '');
+                        const sheetPrice = parseFloat(item.price || item.currentPrice || item.最新市價 || 0);
+
+                        if (sheetSymbol && !isNaN(sheetPrice)) {
+                            stocks.forEach((myStock, index) => {
+                                if (cleanSymbol(myStock.code) === sheetSymbol) {
+                                    stocks[index].price = sheetPrice;
+                                    matchedCount++;
+                                    logToConsole(`更新成功: ${myStock.name} (${myStock.code}) ➔ $${sheetPrice}`, 'success');
+                                }
+                            });
+                        }
+                    });
+
+                    localStorage.setItem('my_stocks', JSON.stringify(stocks));
+                    renderAll();
+                    showCustomAlert('更新完成', `共對接更新 ${matchedCount} 檔股票資產價格！`);
+                } else {
+                    throw new Error('回傳並非 JSON 陣列');
+                }
+            } catch (err) {
+                console.error(err);
+                logToConsole(`連線失敗: ${err.message}`, 'error');
+                showCustomAlert('對接失敗', `連線錯誤:\n${err.message}\n\n說明: 請至設定教學確認權限是否為所有人(Anyone)。`, 'error');
+            }
+        }
+
+        // ==================== 個股詳細資訊控制 ====================
+        function selectStockForDetail(id) {
+            selectedStockId = id;
+            renderAll();
+        }
+
+        function closeStockDetailPanel() {
+            selectedStockId = null;
+            document.getElementById('stock-detail-panel').classList.add('hidden');
+            renderAll();
+        }
+
+        function updateStockDetailPanel(totalStockValue) {
+            const panel = document.getElementById('stock-detail-panel');
+            if (!selectedStockId) {
+                panel.classList.add('hidden');
+                return;
+            }
+
+            const stock = stocks.find(s => s.id === selectedStockId);
+            if (!stock) {
+                panel.classList.add('hidden');
+                selectedStockId = null;
+                return;
+            }
+
+            panel.classList.remove('hidden');
+
+            const cost = Number(stock.shares) * Number(stock.cost);
+            const value = Number(stock.shares) * Number(stock.price);
+            const profit = value - cost;
+            const profitPercent = cost > 0 ? Math.round((profit / cost) * 100) : 0;
+            const ratio = totalStockValue <= 0 ? 0 : Math.round((value / totalStockValue) * 100);
+
+            document.getElementById('detail-stock-title').innerText = `${stock.name} (${stock.code})`;
+            document.getElementById('detail-stock-ratio').innerText = `${ratio}%`;
+            document.getElementById('detail-stock-cost').innerText = `$${Math.round(cost).toLocaleString()}`;
+            document.getElementById('detail-stock-value').innerText = `$${Math.round(value).toLocaleString()}`;
+            
+            const profitNode = document.getElementById('detail-stock-profit');
+            profitNode.innerText = `${profit >= 0 ? '+' : ''}${Math.round(profit).toLocaleString()} (${profit >= 0 ? '+' : ''}${profitPercent}%)`;
+            if (profit >= 0) {
+                profitNode.className = "font-bold text-rose-600 text-sm";
+            } else {
+                profitNode.className = "font-bold text-emerald-600 text-sm";
+            }
+        }
+
+        // ==================== 資料渲染 (Render All) ====================
+        function renderAll() {
+            // 1. 根據記帳流水管道，進行「目前可用餘額」的動態增減計算
+            let cashChange = 0;
+            let twdChange = 0;
+            let foreignChange = 0;
+
+            ledger.forEach(item => {
+                const amt = Number(item.amount) || 0;
+                const src = item.source || 'cash';
+                if (item.type === 'income') {
+                    if (src === 'cash') cashChange += amt;
+                    else if (src === 'twd') twdChange += amt;
+                    else if (src === 'foreign') foreignChange += amt;
+                } else {
+                    if (src === 'cash') cashChange -= amt;
+                    else if (src === 'twd') twdChange -= amt;
+                    else if (src === 'foreign') foreignChange -= amt;
+                }
+            });
+
+            const currentCash = cashOnHand + cashChange;
+            const currentTwd = accountTwd + twdChange;
+            const currentForeign = accountForeign + foreignChange;
+
+            // 渲染至大盤面板
+            document.getElementById('dash-cash-on-hand').innerText = `$${currentCash.toLocaleString('zh-TW')}`;
+            document.getElementById('dash-account-twd').innerText = `$${currentTwd.toLocaleString('zh-TW')}`;
+            document.getElementById('dash-account-foreign').innerText = `$${currentForeign.toLocaleString('zh-TW')}`;
+
+            // 計算股票價值
+            let totalStockVal = 0;
+            stocks.forEach(stock => {
+                totalStockVal += stock.shares * stock.price;
+            });
+            document.getElementById('dash-stock-val').innerText = `$${totalStockVal.toLocaleString('zh-TW')}`;
+            document.getElementById('portfolio-summary-text').innerText = `市值估算: $${totalStockVal.toLocaleString('zh-TW')} (${stocks.length} 檔持股)`;
+
+            // 資產大加總
+            const totalNetWorth = currentCash + currentTwd + currentForeign + totalStockVal;
+            document.getElementById('total-net-worth').innerText = `$${totalNetWorth.toLocaleString('zh-TW')}`;
+
+            // 現金記帳累計損益變動顯示
+            const totalCashLedgerVal = cashChange + twdChange + foreignChange;
+            document.getElementById('ledger-balance-sub').innerText = `當前記帳累計變動: ${totalCashLedgerVal >= 0 ? '+' : ''}$${totalCashLedgerVal.toLocaleString('zh-TW')}`;
+
+            // 2. 渲染最近記帳流水 (Dashboard)
+            const recentContainer = document.getElementById('dashboard-recent-ledger');
+            recentContainer.innerHTML = '';
+            if (ledger.length === 0) {
+                recentContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">目前尚無記帳紀錄</p>`;
+            } else {
+                ledger.slice(0, 3).forEach(item => {
+                    const isExpense = item.type === 'expense';
+                    const div = document.createElement('div');
+                    div.className = "flex items-center justify-between py-2 border-b border-slate-50 last:border-b-0";
+                    div.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <div class="${isExpense ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'} p-1.5 rounded-lg flex items-center justify-center">
+                                <i data-lucide="${isExpense ? 'arrow-down-right' : 'arrow-up-right'}" class="w-3.5 h-3.5"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-800">${item.desc}</span>
+                                <span class="text-[9px] text-slate-400 block">${item.date} • ${item.source === 'twd' ? '台幣' : item.source === 'foreign' ? '外幣' : '現金'}</span>
+                            </div>
+                        </div>
+                        <span class="text-xs font-black ${isExpense ? 'text-rose-500' : 'text-emerald-500'}">
+                            ${isExpense ? '-' : '+'}$${item.amount.toLocaleString()}
+                        </span>
+                    `;
+                    recentContainer.appendChild(div);
+                });
+                lucide.createIcons();
+            }
+
+            // 3. 渲染現金帳戶明細 (Ledger page)
+            const fullLedgerContainer = document.getElementById('full-ledger-list');
+            fullLedgerContainer.innerHTML = '';
+            if (ledger.length === 0) {
+                fullLedgerContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-8">帳本空空如也，快來記第一筆帳吧！</p>`;
+            } else {
+                ledger.forEach(item => {
+                    const isExpense = item.type === 'expense';
+                    const div = document.createElement('div');
+                    div.className = "flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors";
+                    div.innerHTML = `
+                        <div class="flex items-center space-x-3.5">
+                            <div class="${isExpense ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'} p-2 rounded-xl flex items-center justify-center">
+                                <i data-lucide="${isExpense ? 'arrow-down-right' : 'arrow-up-right'}" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-800">${item.desc}</span>
+                                <span class="text-[10px] text-slate-400 block mt-0.5">${item.date} • ${item.source === 'twd' ? '台幣帳戶' : item.source === 'foreign' ? '外幣帳戶' : '身上現金'}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="text-xs font-black ${isExpense ? 'text-rose-600' : 'text-emerald-600'}">
+                                ${isExpense ? '-' : '+'}$${item.amount.toLocaleString()}
+                            </span>
+                            <button onclick="deleteLedgerItem(${item.id})" class="text-slate-300 hover:text-rose-500 p-1 rounded-md transition-colors">
+                                <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    `;
+                    fullLedgerContainer.appendChild(div);
+                });
+                lucide.createIcons();
+            }
+
+            // 4. 渲染股票持股卡片
+            const stockContainer = document.getElementById('stock-list-container');
+            stockContainer.innerHTML = '';
+            if (stocks.length === 0) {
+                stockContainer.innerHTML = `
+                    <p class="text-xs text-slate-400 text-center py-8 bg-white rounded-2xl border border-dashed border-slate-200">
+                        目前證券庫存為空，請點選「新增持股」開始登記！
+                    </p>
+                `;
+            } else {
+                stocks.forEach(stock => {
+                    const stockCostValue = stock.shares * stock.cost;
+                    const stockCurrentValue = stock.shares * stock.price;
+                    const profit = stockCurrentValue - stockCostValue;
+                    const profitPercent = stockCostValue > 0 ? (profit / stockCostValue) * 100 : 0;
+                    const isProfit = profit >= 0;
+
+                    const isSelected = stock.id === selectedStockId;
+
+                    const card = document.createElement('div');
+                    card.onclick = () => selectStockForDetail(stock.id);
+                    card.className = `rounded-2xl border p-4 shadow-sm space-y-3 relative overflow-hidden transition-all duration-200 cursor-pointer ${
+                        isSelected ? 'border-indigo-500 bg-indigo-50/20 ring-2 ring-indigo-500/10' : 'bg-white border-slate-100 hover:border-slate-300'
+                    }`;
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 font-bold text-xs">
+                                    ${stock.code.substring(0, 2)}
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-900">${stock.name}</h4>
+                                    <span class="text-[9px] text-slate-400 font-mono tracking-wider">${stock.code}</span>
+                                </div>
+                            </div>
+                            <button onclick="event.stopPropagation(); deleteStock('${stock.code}')" class="text-slate-300 hover:text-rose-500 p-1 rounded-md transition-colors">
+                                <i data-lucide="trash" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1 bg-slate-50/50 p-2.5 rounded-xl text-center">
+                            <div>
+                                <span class="text-[9px] text-slate-400 block">庫存股數</span>
+                                <span class="text-xs font-bold text-slate-800 font-mono">${stock.shares.toLocaleString()} 股</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-slate-400 block">平均成本</span>
+                                <span class="text-xs font-bold text-slate-800 font-mono">$${stock.cost}</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-slate-400 block">最新市價</span>
+                                <span class="text-xs font-bold text-indigo-600 font-mono">$${stock.price}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-1">
+                            <div>
+                                <span class="text-[9px] text-slate-400 block">當前市值估算</span>
+                                <span class="text-xs font-bold text-slate-800 font-mono">$${Math.round(stockCurrentValue).toLocaleString()}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[9px] text-slate-400 block">累計未實現損益</span>
+                                <span class="text-xs font-black font-mono ${isProfit ? 'text-rose-600' : 'text-emerald-600'}">
+                                    ${isProfit ? '+' : ''}${Math.round(profit).toLocaleString()} (${isProfit ? '+' : ''}${profitPercent.toFixed(2)}%)
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                    stockContainer.appendChild(card);
+                });
+                lucide.createIcons();
+            }
+
+            // 更新個股細部資訊
+            updateStockDetailPanel(totalStockVal);
+        }
+
+        // ==================== 備份匯出與匯入功能 ====================
+        function exportData() {
+            const dataToBackup = {
+                ledger: ledger,
+                stocks: stocks,
+                gasUrl: gasUrl,
+                cashOnHand,
+                accountTwd,
+                accountForeign,
+                budget,
+                backupTime: new Date().toLocaleString()
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToBackup));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `智慧帳本備份_${new Date().toLocaleDateString()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            logToConsole('已完成加密備份檔案匯出與下載。', 'success');
+        }
+
+        function triggerImport() {
+            document.getElementById('import-file-input').click();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedObj = JSON.parse(e.target.result);
+                    if (importedObj.ledger && importedObj.stocks) {
+                        ledger = importedObj.ledger;
+                        stocks = importedObj.stocks;
+                        gasUrl = importedObj.gasUrl || '';
+                        
+                        cashOnHand = importedObj.cashOnHand || 0;
+                        accountTwd = importedObj.accountTwd || 0;
+                        accountForeign = importedObj.accountForeign || 0;
+                        budget = importedObj.budget || 0;
+                        
+                        localStorage.setItem('my_ledger', JSON.stringify(ledger));
+                        localStorage.setItem('my_stocks', JSON.stringify(stocks));
+                        localStorage.setItem('my_gas_url', gasUrl);
+                        localStorage.setItem('my_cash_on_hand', cashOnHand);
+                        localStorage.setItem('my_account_twd', accountTwd);
+                        localStorage.setItem('my_account_foreign', accountForeign);
+                        localStorage.setItem('my_budget', budget);
+
+                        document.getElementById('gas-url-input').value = gasUrl;
+                        document.getElementById('settings-cash-on-hand').value = cashOnHand || '';
+                        document.getElementById('settings-account-twd').value = accountTwd || '';
+                        document.getElementById('settings-account-foreign').value = accountForeign || '';
+                        
+                        renderAll();
+                        logToConsole('本機資料庫已成功從備份中恢復！', 'success');
+                        showCustomAlert('成功還原', '恭喜！您的記帳與持股帳本已經全部成功恢復。');
+                    } else {
+                        throw new Error('不合法的備份結構');
+                    }
+                } catch (err) {
+                    showCustomAlert('還原失敗', '檔案錯誤，請確認為本系統備份檔。', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function triggerResetAll() {
+            showConfirm('確定要清除此裝置上的所有帳目、初始資產與股票紀錄嗎？（清除後無法復原）', () => {
+                localStorage.clear();
+                ledger = [];
+                stocks = [];
+                cashOnHand = 0;
+                accountTwd = 0;
+                accountForeign = 0;
+                budget = 0;
+                gasUrl = '';
+                selectedStockId = null;
+
+                document.getElementById('settings-cash-on-hand').value = '';
+                document.getElementById('settings-account-twd').value = '';
+                document.getElementById('settings-account-foreign').value = '';
+                document.getElementById('settings-monthly-budget').value = '';
+                document.getElementById('gas-api-url-input').value = '';
+                document.getElementById('terminal-logs').innerHTML = `<div class="text-slate-500">&gt; 資料庫已重設，已恢復至零起點。</div>`;
+                
+                closeStockDetailPanel();
+                renderAll();
+                showCustomAlert('已重設', '資料已全部清除重設！');
+            });
+        }
+    </script>
+</body>
+</html>
