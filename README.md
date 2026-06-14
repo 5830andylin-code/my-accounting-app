@@ -165,7 +165,7 @@
                     </div>
                 </div>
                 <button onclick="updateLocalForex()" class="w-full bg-cyan-600 text-white font-bold text-xs py-2 rounded-xl shadow-sm">修正本機外幣快取</button>
-                <p class="text-[9px] text-slate-400 text-center">💡 註：外幣最終仍會於雲端同步時以試算表 Stocks_Forex 工作表數值為主。</p>
+                <p class="text-[9px] text-slate-400 text-center">💡 註：外幣最終仍會於雲端同步時以試算表數值為主。</p>
             </div>
         </section>
 
@@ -185,10 +185,22 @@
 
     <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/60 py-2.5 shadow-lg z-40">
         <div class="max-w-md mx-auto grid grid-cols-4 text-center">
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center justify-center space-y-0.5 text-indigo-600 font-semibold"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span class="text-[10px]">資產配置</span></button>
-            <button onclick="switchTab('ledger')" id="nav-ledger" class="flex flex-col items-center justify-center space-y-0.5 text-slate-400"><i data-lucide="plus-circle" class="w-5 h-5"></i><span class="text-[10px]">記帳</span></button>
-            <button onclick="switchTab('stocks')" id="nav-stocks" class="flex flex-col items-center justify-center space-y-0.5 text-slate-400"><i data-lucide="line-chart" class="w-5 h-5"></i><span class="text-[10px]">股票</span></button>
-            <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center justify-center space-y-0.5 text-slate-400"><i data-lucide="settings" class="w-5 h-5"></i><span class="text-[10px]">多端對接</span></button>
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center justify-center space-y-0.5 text-indigo-600 font-semibold cursor-pointer py-1">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 pointer-events-none"></i>
+                <span class="text-[10px] pointer-events-none">資產配置</span>
+            </button>
+            <button onclick="switchTab('ledger')" id="nav-ledger" class="flex flex-col items-center justify-center space-y-0.5 text-slate-400 cursor-pointer py-1">
+                <i data-lucide="plus-circle" class="w-5 h-5 pointer-events-none"></i>
+                <span class="text-[10px] pointer-events-none">記帳</span>
+            </button>
+            <button onclick="switchTab('stocks')" id="nav-stocks" class="flex flex-col items-center justify-center space-y-0.5 text-slate-400 cursor-pointer py-1">
+                <i data-lucide="line-chart" class="w-5 h-5 pointer-events-none"></i>
+                <span class="text-[10px] pointer-events-none">股票</span>
+            </button>
+            <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center justify-center space-y-0.5 text-slate-400 cursor-pointer py-1">
+                <i data-lucide="settings" class="w-5 h-5 pointer-events-none"></i>
+                <span class="text-[10px] pointer-events-none">多端對接</span>
+            </button>
         </div>
     </nav>
 
@@ -213,13 +225,20 @@
             renderStocks();
         });
 
+        // 修復優化：確實切換顯示，並確保每次切換都重新載入 Lucide SVG 避免消失
         function switchTab(tabId) {
             ['dashboard', 'ledger', 'stocks', 'settings'].forEach(t => {
-                document.getElementById(`tab-${t}`).classList.add('hidden');
-                document.getElementById(`nav-${t}`).className = "flex flex-col items-center justify-center space-y-0.5 text-slate-400";
+                const sect = document.getElementById(`tab-${t}`);
+                const navBtn = document.getElementById(`nav-${t}`);
+                if(sect) sect.classList.add('hidden');
+                if(navBtn) navBtn.className = "flex flex-col items-center justify-center space-y-0.5 text-slate-400 cursor-pointer py-1";
             });
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            document.getElementById(`nav-${tabId}`).className = "flex flex-col items-center justify-center space-y-0.5 text-indigo-600 font-semibold";
+
+            const targetSect = document.getElementById(`tab-${tabId}`);
+            const targetNav = document.getElementById(`nav-${tabId}`);
+            if(targetSect) targetSect.classList.remove('hidden');
+            if(targetNav) targetNav.className = "flex flex-col items-center justify-center space-y-0.5 text-indigo-600 font-semibold cursor-pointer py-1";
+            
             lucide.createIcons();
         }
 
@@ -382,14 +401,12 @@
             }
         }
 
-        // 新增與調整持股邏輯 (如果代碼重複，會自動覆蓋修改，達到調整效果)
         function addNewStock() {
             const sym = document.getElementById('stock-symbol').value.trim().toUpperCase();
             const sh = document.getElementById('stock-shares').value;
             const co = document.getElementById('stock-cost').value;
             if(!sym || !sh) return alert('請完整填寫股票代碼與股數！');
 
-            // 檢查是否已有該檔股票，有的話直接更新，沒有的話再推入
             const existingIndex = appState.stocks.findIndex(s => s.symbol === sym);
             if (existingIndex >= 0) {
                 appState.stocks[existingIndex].shares = Number(sh);
@@ -407,7 +424,6 @@
             alert(`${sym} 持股庫存調整成功！`);
         }
 
-        // 刪除股票標的功能
         function removeStock(symbol) {
             if(!confirm(`確定要將股票代碼 ${symbol} 從您的資產庫存中移除嗎？`)) return;
             appState.stocks = appState.stocks.filter(s => s.symbol !== symbol);
@@ -416,7 +432,6 @@
             renderDashboard();
         }
 
-        // 快速手動調整本機外幣快取金額
         function updateLocalForex() {
             const curr = document.getElementById('adj-forex-currency').value;
             const amt = document.getElementById('adj-forex-amount').value;
@@ -425,7 +440,6 @@
             const existingIndex = appState.forex.findIndex(f => f.currency === curr);
             if (existingIndex >= 0) {
                 appState.forex[existingIndex].amount = Number(amt);
-                // 估算台幣價值 (若尚未同步則乘上基礎概估，同步後會被精準覆蓋)
                 const oldRate = appState.forex[existingIndex].twdValue / (appState.forex[existingIndex].amount || 1);
                 appState.forex[existingIndex].twdValue = Number(amt) * (oldRate || 30);
             } else {
@@ -480,7 +494,7 @@
                                 ${sign}${Math.floor(profit).toLocaleString()} (${sign}${roi.toFixed(2)}%)
                             </p>
                         </div>
-                        <button onclick="removeStock('${s.symbol}')" class="text-slate-300 hover:text-rose-500 p-1 transition-colors">
+                        <button onclick="removeStock('${s.symbol}')" class="text-slate-300 hover:text-rose-500 p-1 transition-colors cursor-pointer">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
                     </div>
@@ -497,7 +511,7 @@
         function syncCloudData() {
             if(!appState.gasUrl) return;
             const icon = document.getElementById('sync-icon');
-            icon.classList.add('animate-spin');
+            if(icon) icon.classList.add('animate-spin');
 
             fetch(appState.gasUrl)
                 .then(res => res.json())
@@ -519,7 +533,9 @@
                     renderDashboard();
                 })
                 .catch(err => console.error('連線失敗:', err))
-                .finally(() => icon.classList.remove('animate-spin'));
+                .finally(() => {
+                    if(icon) icon.classList.remove('animate-spin');
+                });
         }
     </script>
 </body>
