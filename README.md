@@ -107,18 +107,39 @@
         </section>
 
         <section id="tab-stocks" class="hidden space-y-4">
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-3.5">
-                <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1"><i data-lucide="plus-circle" class="w-3.5 h-3.5 text-amber-500"></i><span>新增證券持股 (對應試算表)</span></h5>
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-4">
+                <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1.5 border-b border-slate-50 pb-2">
+                    <i data-lucide="plus-circle" class="w-4 h-4 text-amber-500"></i>
+                    <span>新增證券持股 (對應試算表)</span>
+                </h5>
                 <div class="grid grid-cols-3 gap-2">
-                    <input type="text" id="stock-symbol" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold" placeholder="代碼: 2330">
-                    <input type="number" id="stock-shares" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold" placeholder="股數">
-                    <input type="number" id="stock-cost" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold" placeholder="成本價">
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1 font-medium">股票代碼</label>
+                        <input type="text" id="stock-symbol" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black uppercase font-mono text-slate-800 focus:outline-indigo-500" placeholder="2330">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1 font-medium">持有股數</label>
+                        <input type="number" id="stock-shares" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800" placeholder="股數">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1 font-medium">平均成本</label>
+                        <input type="number" id="stock-cost" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800" placeholder="成本價">
+                    </div>
                 </div>
-                <button onclick="addNewStock()" class="w-full bg-slate-800 text-white font-semibold text-xs py-2 rounded-xl">加入本機明細</button>
+                <button onclick="addNewStock()" class="w-full bg-slate-900 text-white font-bold text-xs py-2.5 rounded-xl shadow-md hover:bg-slate-800 transition-colors">加入本機庫存明細</button>
             </div>
+
             <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
-                <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center space-x-1"><i data-lucide="pie-chart" class="w-3.5 h-3.5 text-indigo-500"></i><span>證券資產庫存清單</span></h5>
-                <div id="stock-list-container" class="space-y-3"><p class="text-xs text-slate-400 text-center py-6">無持股明細</p></div>
+                <div class="flex items-center justify-between mb-3 border-b border-slate-50 pb-2">
+                    <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1.5">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-indigo-500"></i>
+                        <span>證券資產即時損益清單</span>
+                    </h5>
+                    <span id="stock-total-profit" class="text-xs font-bold text-slate-500">$0</span>
+                </div>
+                <div id="stock-list-container" class="space-y-3">
+                    <p class="text-xs text-slate-400 text-center py-6">無持股明細，請點擊同步拉取現價</p>
+                </div>
             </div>
         </section>
 
@@ -147,7 +168,7 @@
 
     <script>
         let appState = {
-            ledger: [], // 升級：全部改為從雲端拉取
+            ledger: [], 
             stocks: JSON.parse(localStorage.getItem('FIN_STOCKS')) || [],
             forex: [],
             gasUrl: localStorage.getItem('FIN_GAS_URL') || '',
@@ -193,7 +214,6 @@
             syncCloudData();
         }
 
-        // 新增功能：將記帳項目發送到雲端資料庫（試算表）
         function saveLedgerToCloud() {
             if(!appState.gasUrl) return alert('請先到「多端對接」設定您的雲端密鑰！');
             const amt = document.getElementById('ledger-amount').value;
@@ -213,10 +233,9 @@
                 date: date
             };
 
-            // 使用 POST 傳送給 Google Sheets 后台
             fetch(appState.gasUrl, {
                 method: "POST",
-                mode: "no-cors", // 避免跨域阻擋
+                mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newLog)
             })
@@ -224,7 +243,7 @@
                 document.getElementById('ledger-amount').value = '';
                 document.getElementById('ledger-note').value = '';
                 alert('雲端記帳成功！正在重整數據...');
-                syncCloudData(); // 重新拉取最新總資產與流水帳
+                syncCloudData();
                 switchTab('dashboard');
             })
             .catch(err => alert('雲端傳送失敗: ' + err))
@@ -324,7 +343,6 @@
             if (appState.ledger.length === 0) {
                 recentContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">雲端目前尚無流水帳紀錄</p>`;
             } else {
-                // 由新到舊排序顯示
                 recentContainer.innerHTML = appState.ledger.slice().reverse().slice(0, 5).map(item => `
                     <div class="flex items-center justify-between p-2 hover:bg-slate-50 border border-slate-100/50 rounded-xl text-xs">
                         <div>
@@ -350,21 +368,57 @@
             document.getElementById('stock-symbol').value = '';
         }
 
+        // 【主要優化：新增未實現損益與報酬率邏輯計算】
         function renderStocks() {
             const container = document.getElementById('stock-list-container');
+            const totalProfitBadge = document.getElementById('stock-total-profit');
+            
             if(appState.stocks.length === 0) {
                 container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">無持股明細</p>`;
+                totalProfitBadge.innerText = "$0";
+                totalProfitBadge.className = "text-xs font-bold text-slate-500";
                 return;
             }
-            container.innerHTML = appState.stocks.map((s, idx) => `
-                <div class="bg-slate-50/80 border border-slate-100 rounded-xl p-2.5 text-xs flex justify-between items-center">
-                    <div>
-                        <p class="font-black text-slate-800 font-mono">${s.symbol} (${s.shares}股)</p>
-                        <p class="text-[10px] text-slate-400">現價: ${s.currentPrice || '未同步'}</p>
+
+            let globalTotalProfit = 0;
+
+            container.innerHTML = appState.stocks.map((s) => {
+                const currentPrice = s.currentPrice || s.cost;
+                const totalCost = s.shares * s.cost;
+                const currentWorth = s.shares * currentPrice;
+                const profit = currentWorth - totalCost; // 計算損益
+                const roi = totalCost > 0 ? (profit / totalCost) * 100 : 0; // 計算報酬率
+                
+                globalTotalProfit += profit;
+
+                // 根據損益決定字體顯色 (正為綠、負為紅)
+                const isPositive = profit >= 0;
+                const textColorClass = isPositive ? 'text-emerald-600' : 'text-rose-600';
+                const sign = isPositive ? '+' : '';
+
+                return `
+                    <div class="bg-slate-50/80 border border-slate-100/60 rounded-2xl p-3 text-xs flex justify-between items-center shadow-2xs hover:bg-slate-100/50 transition-all">
+                        <div class="space-y-0.5">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-black text-slate-800 font-mono text-sm tracking-wide">${s.symbol}</span>
+                                <span class="text-[10px] text-slate-400 font-medium bg-slate-200/60 px-1.5 py-0.5 rounded-md">${s.shares} 股</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400">成本: ${s.cost} | 現價: <span class="font-semibold text-slate-600">${s.currentPrice || '未同步'}</span></p>
+                        </div>
+                        <div class="text-right space-y-0.5">
+                            <p class="font-bold text-slate-800 text-sm">$${Math.floor(currentWorth).toLocaleString()}</p>
+                            <p class="text-[10px] font-black ${textColorClass}">
+                                ${sign}${Math.floor(profit).toLocaleString()} (${sign}${roi.toFixed(2)}%)
+                            </p>
+                        </div>
                     </div>
-                    <span class="font-bold text-slate-700">$${Math.floor(s.shares * (s.currentPrice||s.cost)).toLocaleString()}</span>
-                </div>
-            `).join('');
+                `;
+            }).join('');
+
+            // 更新整體證券總損益顯示
+            const isGlobalPositive = globalTotalProfit >= 0;
+            totalProfitBadge.innerText = `總損益: ${isGlobalPositive ? '+' : ''}${Math.floor(globalTotalProfit).toLocaleString()}`;
+            totalProfitBadge.className = `text-xs font-black ${isGlobalPositive ? 'text-emerald-600' : 'text-rose-600'}`;
         }
 
         function syncCloudData() {
@@ -375,7 +429,6 @@
             fetch(appState.gasUrl)
                 .then(res => res.json())
                 .then(cloudData => {
-                    // 同步股票現價
                     if(cloudData.stocks) {
                         appState.stocks.forEach(localStock => {
                             const found = cloudData.stocks.find(c => c.symbol === localStock.symbol || c.symbol.endsWith(':' + localStock.symbol));
@@ -383,10 +436,7 @@
                         });
                         localStorage.setItem('FIN_STOCKS', JSON.stringify(appState.stocks));
                     }
-                    // 同步雲端外幣資產
                     if(cloudData.currencies) appState.forex = cloudData.currencies;
-                    
-                    // 同步雲端記帳流水帳
                     if(cloudData.ledger) appState.ledger = cloudData.ledger;
 
                     renderStocks();
