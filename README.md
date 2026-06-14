@@ -110,36 +110,62 @@
             <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-4">
                 <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1.5 border-b border-slate-50 pb-2">
                     <i data-lucide="plus-circle" class="w-4 h-4 text-amber-500"></i>
-                    <span>新增證券持股 (對應試算表)</span>
+                    <span>新增/調整 證券持股庫存</span>
                 </h5>
                 <div class="grid grid-cols-3 gap-2">
                     <div>
                         <label class="block text-[10px] text-slate-400 mb-1 font-medium">股票代碼</label>
-                        <input type="text" id="stock-symbol" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black uppercase font-mono text-slate-800 focus:outline-indigo-500" placeholder="2330">
+                        <input type="text" id="stock-symbol" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black uppercase font-mono text-slate-800" placeholder="2330">
                     </div>
                     <div>
                         <label class="block text-[10px] text-slate-400 mb-1 font-medium">持有股數</label>
-                        <input type="number" id="stock-shares" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800" placeholder="股數">
+                        <input type="number" id="stock-shares" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800" placeholder="1000">
                     </div>
                     <div>
                         <label class="block text-[10px] text-slate-400 mb-1 font-medium">平均成本</label>
-                        <input type="number" id="stock-cost" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800" placeholder="成本價">
+                        <input type="number" id="stock-cost" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800" placeholder="成本">
                     </div>
                 </div>
-                <button onclick="addNewStock()" class="w-full bg-slate-900 text-white font-bold text-xs py-2.5 rounded-xl shadow-md hover:bg-slate-800 transition-colors">加入本機庫存明細</button>
+                <button onclick="addNewStock()" class="w-full bg-slate-900 text-white font-bold text-xs py-2.5 rounded-xl shadow-md">保存本機持股設定</button>
             </div>
 
             <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
                 <div class="flex items-center justify-between mb-3 border-b border-slate-50 pb-2">
                     <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1.5">
                         <i data-lucide="trending-up" class="w-4 h-4 text-indigo-500"></i>
-                        <span>證券資產即時損益清單</span>
+                        <span>證券資產清單與管理</span>
                     </h5>
                     <span id="stock-total-profit" class="text-xs font-bold text-slate-500">$0</span>
                 </div>
                 <div id="stock-list-container" class="space-y-3">
-                    <p class="text-xs text-slate-400 text-center py-6">無持股明細，請點擊同步拉取現價</p>
+                    <p class="text-xs text-slate-400 text-center py-6">無持股明細</p>
                 </div>
+            </div>
+
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-3">
+                <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1.5 border-b border-slate-50 pb-2">
+                    <i data-lucide="pencil-line" class="w-4 h-4 text-cyan-500"></i>
+                    <span>快速手動調整外幣現額</span>
+                </h5>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1">外幣幣別</label>
+                        <select id="adj-forex-currency" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
+                            <option value="USD">USD - 美金</option>
+                            <option value="JPY">JPY - 日圓</option>
+                            <option value="EUR">EUR - 歐元</option>
+                            <option value="GBP">GBP - 英鎊</option>
+                            <option value="KRW">KRW - 韓元</option>
+                            <option value="AUD">AUD - 澳幣</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1">調整後新原幣總量</label>
+                        <input type="number" id="adj-forex-amount" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" placeholder="例如: 5000">
+                    </div>
+                </div>
+                <button onclick="updateLocalForex()" class="w-full bg-cyan-600 text-white font-bold text-xs py-2 rounded-xl shadow-sm">修正本機外幣快取</button>
+                <p class="text-[9px] text-slate-400 text-center">💡 註：外幣最終仍會於雲端同步時以試算表 Stocks_Forex 工作表數值為主。</p>
             </div>
         </section>
 
@@ -170,7 +196,7 @@
         let appState = {
             ledger: [], 
             stocks: JSON.parse(localStorage.getItem('FIN_STOCKS')) || [],
-            forex: [],
+            forex: JSON.parse(localStorage.getItem('FIN_FOREX')) || [],
             gasUrl: localStorage.getItem('FIN_GAS_URL') || '',
             ledgerType: 'expense'
         };
@@ -194,6 +220,7 @@
             });
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             document.getElementById(`nav-${tabId}`).className = "flex flex-col items-center justify-center space-y-0.5 text-indigo-600 font-semibold";
+            lucide.createIcons();
         }
 
         function setLedgerType(type) {
@@ -355,20 +382,63 @@
             }
         }
 
+        // 新增與調整持股邏輯 (如果代碼重複，會自動覆蓋修改，達到調整效果)
         function addNewStock() {
             const sym = document.getElementById('stock-symbol').value.trim().toUpperCase();
             const sh = document.getElementById('stock-shares').value;
             const co = document.getElementById('stock-cost').value;
-            if(!sym || !sh) return alert('請完整填寫！');
+            if(!sym || !sh) return alert('請完整填寫股票代碼與股數！');
 
-            appState.stocks.push({ symbol: sym, shares: Number(sh), cost: Number(co)||0, currentPrice: Number(co)||0 });
+            // 檢查是否已有該檔股票，有的話直接更新，沒有的話再推入
+            const existingIndex = appState.stocks.findIndex(s => s.symbol === sym);
+            if (existingIndex >= 0) {
+                appState.stocks[existingIndex].shares = Number(sh);
+                appState.stocks[existingIndex].cost = Number(co) || appState.stocks[existingIndex].cost;
+            } else {
+                appState.stocks.push({ symbol: sym, shares: Number(sh), cost: Number(co)||0, currentPrice: Number(co)||0 });
+            }
+
             localStorage.setItem('FIN_STOCKS', JSON.stringify(appState.stocks));
             renderStocks();
             renderDashboard();
             document.getElementById('stock-symbol').value = '';
+            document.getElementById('stock-shares').value = '';
+            document.getElementById('stock-cost').value = '';
+            alert(`${sym} 持股庫存調整成功！`);
         }
 
-        // 【主要優化：新增未實現損益與報酬率邏輯計算】
+        // 刪除股票標的功能
+        function removeStock(symbol) {
+            if(!confirm(`確定要將股票代碼 ${symbol} 從您的資產庫存中移除嗎？`)) return;
+            appState.stocks = appState.stocks.filter(s => s.symbol !== symbol);
+            localStorage.setItem('FIN_STOCKS', JSON.stringify(appState.stocks));
+            renderStocks();
+            renderDashboard();
+        }
+
+        // 快速手動調整本機外幣快取金額
+        function updateLocalForex() {
+            const curr = document.getElementById('adj-forex-currency').value;
+            const amt = document.getElementById('adj-forex-amount').value;
+            if(!amt) return alert('請輸入調整後的外幣新總額！');
+
+            const existingIndex = appState.forex.findIndex(f => f.currency === curr);
+            if (existingIndex >= 0) {
+                appState.forex[existingIndex].amount = Number(amt);
+                // 估算台幣價值 (若尚未同步則乘上基礎概估，同步後會被精準覆蓋)
+                const oldRate = appState.forex[existingIndex].twdValue / (appState.forex[existingIndex].amount || 1);
+                appState.forex[existingIndex].twdValue = Number(amt) * (oldRate || 30);
+            } else {
+                appState.forex.push({ currency: curr, amount: Number(amt), twdValue: Number(amt) * 32 });
+            }
+
+            localStorage.setItem('FIN_FOREX', JSON.stringify(appState.forex));
+            renderDashboard();
+            document.getElementById('adj-forex-amount').value = '';
+            alert(`${curr} 額度已於本地調整完成！`);
+            switchTab('dashboard');
+        }
+
         function renderStocks() {
             const container = document.getElementById('stock-list-container');
             const totalProfitBadge = document.getElementById('stock-total-profit');
@@ -386,36 +456,39 @@
                 const currentPrice = s.currentPrice || s.cost;
                 const totalCost = s.shares * s.cost;
                 const currentWorth = s.shares * currentPrice;
-                const profit = currentWorth - totalCost; // 計算損益
-                const roi = totalCost > 0 ? (profit / totalCost) * 100 : 0; // 計算報酬率
+                const profit = currentWorth - totalCost; 
+                const roi = totalCost > 0 ? (profit / totalCost) * 100 : 0; 
                 
                 globalTotalProfit += profit;
 
-                // 根據損益決定字體顯色 (正為綠、負為紅)
                 const isPositive = profit >= 0;
                 const textColorClass = isPositive ? 'text-emerald-600' : 'text-rose-600';
                 const sign = isPositive ? '+' : '';
 
                 return `
                     <div class="bg-slate-50/80 border border-slate-100/60 rounded-2xl p-3 text-xs flex justify-between items-center shadow-2xs hover:bg-slate-100/50 transition-all">
-                        <div class="space-y-0.5">
+                        <div class="space-y-0.5 flex-1">
                             <div class="flex items-center space-x-2">
                                 <span class="font-black text-slate-800 font-mono text-sm tracking-wide">${s.symbol}</span>
                                 <span class="text-[10px] text-slate-400 font-medium bg-slate-200/60 px-1.5 py-0.5 rounded-md">${s.shares} 股</span>
                             </div>
                             <p class="text-[10px] text-slate-400">成本: ${s.cost} | 現價: <span class="font-semibold text-slate-600">${s.currentPrice || '未同步'}</span></p>
                         </div>
-                        <div class="text-right space-y-0.5">
+                        <div class="text-right space-y-0.5 mr-3">
                             <p class="font-bold text-slate-800 text-sm">$${Math.floor(currentWorth).toLocaleString()}</p>
                             <p class="text-[10px] font-black ${textColorClass}">
                                 ${sign}${Math.floor(profit).toLocaleString()} (${sign}${roi.toFixed(2)}%)
                             </p>
                         </div>
+                        <button onclick="removeStock('${s.symbol}')" class="text-slate-300 hover:text-rose-500 p-1 transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
                     </div>
                 `;
             }).join('');
 
-            // 更新整體證券總損益顯示
+            lucide.createIcons();
+
             const isGlobalPositive = globalTotalProfit >= 0;
             totalProfitBadge.innerText = `總損益: ${isGlobalPositive ? '+' : ''}${Math.floor(globalTotalProfit).toLocaleString()}`;
             totalProfitBadge.className = `text-xs font-black ${isGlobalPositive ? 'text-emerald-600' : 'text-rose-600'}`;
@@ -436,7 +509,10 @@
                         });
                         localStorage.setItem('FIN_STOCKS', JSON.stringify(appState.stocks));
                     }
-                    if(cloudData.currencies) appState.forex = cloudData.currencies;
+                    if(cloudData.currencies) {
+                        appState.forex = cloudData.currencies;
+                        localStorage.setItem('FIN_FOREX', JSON.stringify(appState.forex));
+                    }
                     if(cloudData.ledger) appState.ledger = cloudData.ledger;
 
                     renderStocks();
