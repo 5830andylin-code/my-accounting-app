@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI 雲端資產管家</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght=400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -21,8 +21,8 @@
                     <i data-lucide="brain-circuit" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h1 class="text-sm font-bold text-slate-900 tracking-wide">AI 雲端資產管家 10in1</h1>
-                    <p class="text-[9px] text-indigo-600 font-medium tracking-wider">AI-POWERED FINANCIAL ECOSYSTEM</p>
+                    <h1 class="text-sm font-bold text-slate-900 tracking-wide">AI 雲端資產管家</h1>
+                    <p class="text-[9px] text-indigo-600 font-medium tracking-wider uppercase">Financial Ecosystem</p>
                 </div>
             </div>
             <div id="sync-badge" class="flex items-center space-x-1 bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full text-xs font-medium">
@@ -53,23 +53,23 @@
                 <div class="flex items-center justify-between border-b border-indigo-800 pb-2">
                     <h4 class="text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5 text-indigo-300">
                         <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
-                        <span>【功能4】AI 功能核心</span>
+                        <span>AI 智慧分析核心</span>
                     </h4>
                     <button onclick="triggerAIEngine()" class="text-[10px] bg-indigo-600/50 hover:bg-indigo-600 text-white px-2 py-0.5 rounded-md border border-indigo-500/30">喚醒 AI</button>
                 </div>
                 <div class="grid grid-cols-2 gap-2 text-center">
                     <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-700/50">
-                        <p class="text-[9px] text-slate-400">【功能5】AI 分析花費</p>
+                        <p class="text-[9px] text-slate-400">主要消費分析</p>
                         <p id="ai-expense-analysis" class="text-xs font-bold text-emerald-400 mt-1">未分析</p>
                     </div>
                     <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-700/50">
-                        <p class="text-[9px] text-slate-400">【功能6】AI 抓浪費</p>
+                        <p class="text-[9px] text-slate-400">潛在浪費追蹤</p>
                         <p id="ai-waste-hunter" class="text-xs font-bold text-amber-300 mt-1">未分析</p>
                     </div>
                 </div>
                 <div class="bg-slate-950/80 rounded-xl p-3 border border-slate-800 text-xs text-slate-300 leading-relaxed">
-                    <span class="font-bold text-indigo-300 block mb-1">【功能10】AI 每日財報：</span>
-                    <p id="ai-daily-report">請點擊「喚醒 AI」分析資產盲點與防禦報告。</p>
+                    <span class="font-bold text-indigo-300 block mb-1">AI 每日財務日報：</span>
+                    <p id="ai-daily-report">請點擊「喚醒 AI」分析資產狀態與防禦報告。</p>
                 </div>
             </div>
 
@@ -80,7 +80,7 @@
 
         <section id="tab-ledger" class="hidden space-y-4">
             <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
-                <h4 class="text-xs font-bold text-slate-700 uppercase mb-2 flex items-center space-x-1"><i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i><span>【功能1】極速記帳</span></h4>
+                <h4 class="text-xs font-bold text-slate-700 uppercase mb-2 flex items-center space-x-1"><i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i><span>極速記帳</span></h4>
                 <div class="grid grid-cols-4 gap-2">
                     <button onclick="quickLedger(100, '外食早餐')" class="bg-slate-50 border border-slate-100 p-2 rounded-xl text-center active:bg-indigo-50"><p class="text-xs font-bold text-slate-700">早餐</p><p class="text-[10px] text-slate-400">$100</p></button>
                     <button onclick="quickLedger(150, '午餐便當')" class="bg-slate-50 border border-slate-100 p-2 rounded-xl text-center active:bg-indigo-50"><p class="text-xs font-bold text-slate-700">午餐</p><p class="text-[10px] text-slate-400">$150</p></button>
@@ -92,13 +92,13 @@
             <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 shadow-sm space-y-2.5">
                 <h4 class="text-xs font-bold text-indigo-950 uppercase flex items-center space-x-1.5"><i data-lucide="mic" class="w-4 h-4 text-indigo-600"></i><span>智慧輸入介面</span></h4>
                 <div class="grid grid-cols-2 gap-2">
-                    <button id="btn-voice-rec" onclick="startVoiceRecognition()" class="flex items-center justify-center space-x-2 bg-white border border-indigo-200 py-2.5 rounded-xl active:bg-indigo-100">
+                    <button id="btn-voice-rec" onclick="startVoiceRecognition()" class="flex items-center justify-center space-x-2 bg-white border border-indigo-200 py-2.5 rounded-xl active:bg-indigo-100 cursor-pointer">
                         <i data-lucide="mic" class="w-4 h-4 text-indigo-600"></i>
-                        <span class="text-xs font-bold text-indigo-900" id="text-voice">【功能2】語音記帳</span>
+                        <span class="text-xs font-bold text-indigo-900" id="text-voice">語音記帳</span>
                     </button>
                     <label class="flex items-center justify-center space-x-2 bg-white border border-indigo-200 py-2.5 rounded-xl active:bg-indigo-100 text-center cursor-pointer">
                         <i data-lucide="scan-barcode" class="w-4 h-4 text-blue-600"></i>
-                        <span class="text-xs font-bold text-blue-900">【功能3】AI發票辨識</span>
+                        <span class="text-xs font-bold text-blue-900">發票明細辨識</span>
                         <input type="file" accept="image/*" class="hidden" onchange="simulateInvoiceOCR(event)">
                     </label>
                 </div>
@@ -114,7 +114,7 @@
                     <input type="text" id="ledger-note" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs" placeholder="項目說明">
                 </div>
                 <input type="date" id="ledger-date" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs">
-                <button onclick="saveLedgerToCloud()" id="btn-submit-ledger" class="w-full bg-indigo-600 text-white font-bold text-xs py-2.5 rounded-xl shadow-md">上傳雲端試算表</button>
+                <button onclick="saveLedgerToCloud()" id="btn-submit-ledger" class="w-full bg-indigo-600 text-white font-bold text-xs py-2.5 rounded-xl shadow-md cursor-pointer">上傳雲端試算表</button>
             </div>
         </section>
 
@@ -122,18 +122,21 @@
             <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-3">
                 <h5 class="text-xs font-bold text-slate-700 uppercase flex items-center space-x-1"><i data-lucide="plus-circle" class="w-4 h-4 text-indigo-500"></i><span>持股庫存設定</span></h5>
                 <div class="grid grid-cols-3 gap-2">
-                    <input type="text" id="stock-symbol" class="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-xs font-black uppercase text-center font-mono" placeholder="代碼(如2330)">
-                    <input type="number" id="stock-shares" class="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-xs font-bold text-center" placeholder="股數">
-                    <input type="number" id="stock-cost" class="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-xs font-bold text-center" placeholder="成本">
+                    <input type="text" id="stock-symbol" class="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-xs font-black uppercase text-center font-mono" placeholder="代碼 (如TWO:6881)">
+                    <input type="number" id="stock-shares" class="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-xs font-bold text-center" placeholder="持有股數">
+                    <input type="number" id="stock-cost" class="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-xs font-bold text-center" placeholder="買入成本">
                 </div>
-                <button onclick="addNewStock()" class="w-full bg-slate-900 text-white font-bold text-xs py-2 rounded-xl">儲存變更</button>
+                <button onclick="addNewStock()" class="w-full bg-slate-900 text-white font-bold text-xs py-2 rounded-xl cursor-pointer">儲存變更</button>
             </div>
 
             <div class="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 shadow-sm space-y-3">
-                <h4 class="text-xs font-bold text-amber-900 uppercase flex items-center space-x-1.5"><i data-lucide="calendar-days" class="w-4 h-4 text-amber-600"></i><span>收益預測與日曆</span></h4>
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold text-amber-900 uppercase flex items-center space-x-1.5"><i data-lucide="calendar-days" class="w-4 h-4 text-amber-600"></i><span>收益預測與公告日曆</span></h4>
+                    <span class="text-[9px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-bold">官方公告為主</span>
+                </div>
                 <div class="grid grid-cols-2 gap-2 text-center">
                     <div class="bg-white p-2 rounded-xl border border-amber-200/60">
-                        <p class="text-[9px] text-amber-800">【功能7】配息預測(年)</p>
+                        <p class="text-[9px] text-amber-800">預估年度總股利</p>
                         <p id="predict-dividend-total" class="text-sm font-black text-amber-600">$0</p>
                     </div>
                     <div class="bg-white p-2 rounded-xl border border-amber-200/60">
@@ -142,7 +145,7 @@
                     </div>
                 </div>
                 <div class="space-y-1">
-                    <span class="text-[10px] font-bold text-amber-800 block">【功能9】股利日曆 (官方公告時程)：</span>
+                    <span class="text-[10px] font-bold text-amber-800 block">除權息時程表：</span>
                     <div id="dividend-calendar-list" class="space-y-1 text-xs text-slate-600 bg-white/50 p-2 rounded-lg">
                         </div>
                 </div>
@@ -155,7 +158,7 @@
             <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-3">
                 <h4 class="text-xs font-bold text-slate-700 flex items-center space-x-1.5 border-b border-slate-100 pb-2">
                     <i data-lucide="compass" class="w-4 h-4 text-emerald-600"></i>
-                    <span>【功能8】FIRE退休計算 (4% 法則)</span>
+                    <span>FIRE 退休計算 (4% 法則)</span>
                 </h4>
                 <div class="grid grid-cols-2 gap-2">
                     <input type="number" id="fire-month-expense" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold" value="50000" oninput="calculateFIRE()" placeholder="退休後月花費">
@@ -174,7 +177,7 @@
             <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-3">
                 <h4 class="text-xs font-bold text-slate-700 flex items-center space-x-1"><i data-lucide="key-round" class="w-3.5 h-3.5"></i><span>雲端金鑰對接</span></h4>
                 <input type="url" id="gas-api-url" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono" placeholder="請貼上 Google GAS 部署網址">
-                <button onclick="saveSettings()" class="w-full bg-slate-900 text-white font-bold text-xs py-2 rounded-xl">儲存並啟動同步</button>
+                <button onclick="saveSettings()" class="w-full bg-slate-900 text-white font-bold text-xs py-2 rounded-xl cursor-pointer">儲存並啟動同步</button>
             </div>
         </section>
 
@@ -182,11 +185,11 @@
 
     <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 py-2 shadow-lg z-40">
         <div class="max-w-md mx-auto grid grid-cols-5 text-center">
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center justify-center text-indigo-600 font-bold py-1"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span class="text-[9px]">資產配置</span></button>
-            <button onclick="switchTab('ledger')" id="nav-ledger" class="flex flex-col items-center justify-center text-slate-400 py-1"><i data-lucide="plus-circle" class="w-4 h-4"></i><span class="text-[9px]">智慧記帳</span></button>
-            <button onclick="switchTab('stocks')" id="nav-stocks" class="flex flex-col items-center justify-center text-slate-400 py-1"><i data-lucide="calendar-days" class="w-4 h-4"></i><span class="text-[9px]">股利預測</span></button>
-            <button onclick="switchTab('fire')" id="nav-fire" class="flex flex-col items-center justify-center text-slate-400 py-1"><i data-lucide="compass" class="w-4 h-4"></i><span class="text-[9px]">FIRE退休</span></button>
-            <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center justify-center text-slate-400 py-1"><i data-lucide="settings" class="w-4 h-4"></i><span class="text-[9px]">對接設定</span></button>
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center justify-center text-indigo-600 font-bold py-1 cursor-pointer"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span class="text-[9px]">資產配置</span></button>
+            <button onclick="switchTab('ledger')" id="nav-ledger" class="flex flex-col items-center justify-center text-slate-400 py-1 cursor-pointer"><i data-lucide="plus-circle" class="w-4 h-4"></i><span class="text-[9px]">智慧記帳</span></button>
+            <button onclick="switchTab('stocks')" id="nav-stocks" class="flex flex-col items-center justify-center text-slate-400 py-1 cursor-pointer"><i data-lucide="calendar-days" class="w-4 h-4"></i><span class="text-[9px]">股利預測</span></button>
+            <button onclick="switchTab('fire')" id="nav-fire" class="flex flex-col items-center justify-center text-slate-400 py-1 cursor-pointer"><i data-lucide="compass" class="w-4 h-4"></i><span class="text-[9px]">FIRE退休</span></button>
+            <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center justify-center text-slate-400 py-1 cursor-pointer"><i data-lucide="settings" class="w-4 h-4"></i><span class="text-[9px]">對接設定</span></button>
         </div>
     </nav>
 
@@ -214,14 +217,13 @@
             ['dashboard', 'ledger', 'stocks', 'fire', 'settings'].forEach(t => {
                 document.getElementById(`tab-${t}`)?.classList.add('hidden');
                 const btn = document.getElementById(`nav-${t}`);
-                if(btn) btn.className = "flex flex-col items-center justify-center text-slate-400 py-1";
+                if(btn) btn.className = "flex flex-col items-center justify-center text-slate-400 py-1 cursor-pointer";
             });
             document.getElementById(`tab-${tabId}`)?.classList.remove('hidden');
             const targetBtn = document.getElementById(`nav-${tabId}`);
-            if(targetBtn) targetBtn.className = "flex flex-col items-center justify-center text-indigo-600 font-bold py-1";
+            if(targetBtn) targetBtn.className = "flex flex-col items-center justify-center text-indigo-600 font-bold py-1 cursor-pointer";
         }
 
-        // 【功能 1】極速記帳
         function quickLedger(amount, note) {
             document.getElementById('ledger-amount').value = amount;
             document.getElementById('ledger-note').value = note;
@@ -229,7 +231,6 @@
             saveLedgerToCloud();
         }
 
-        // 【功能 2】語音記帳
         function startVoiceRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) return alert("瀏覽器不支援語音功能");
@@ -239,7 +240,7 @@
             recognition.start();
             recognition.onresult = function(event) {
                 const text = event.results[0][0].transcript;
-                document.getElementById('text-voice').innerText = "【功能2】語音記帳";
+                document.getElementById('text-voice').innerText = "語音記帳";
                 const match = text.match(/\d+/);
                 let amt = match ? match[0] : 0;
                 const note = text.replace(/\d+元?/g, '').trim() || "語音項目";
@@ -248,11 +249,10 @@
                 alert(`🎤 解析成功！\n項目：${note} | 金額：$${amt}\n確認無誤請點擊送出。`);
             };
             recognition.onerror = function() {
-                document.getElementById('text-voice').innerText = "【功能2】語音記帳";
+                document.getElementById('text-voice').innerText = "語音記帳";
             };
         }
 
-        // 【功能 3】AI 發票辨識
         function simulateInvoiceOCR(event) {
             if(!event.target.files[0]) return;
             alert("📷 AI 正在進行發票圖文辨識分析...");
@@ -263,7 +263,6 @@
             }, 1000);
         }
 
-        // 【功能 4, 5, 6, 10】AI 家族引擎
         function triggerAIEngine() {
             alert("🧠 AI 大腦計算中...");
             setTimeout(() => {
@@ -337,7 +336,7 @@
                             if(found) {
                                 localStock.currentPrice = Number(found.price);
                                 localStock.dividendPerShare = Number(found.dividendPerShare);
-                                localStock.exDate = found.exDate; // 承接雲端撈回的真實官方公告日
+                                localStock.exDate = found.exDate;
                             }
                         });
                         localStorage.setItem('FIN_STOCKS', JSON.stringify(appState.stocks));
@@ -378,7 +377,6 @@
             syncCloudData();
         }
 
-        // 【功能 7 & 9】精簡化融合：持股庫存明細、配息預測與股利除息日曆
         function renderStocksAndCalendars() {
             const listContainer = document.getElementById('stock-list-container');
             const calContainer = document.getElementById('dividend-calendar-list');
@@ -453,7 +451,6 @@
             calculateFIRE();
         }
 
-        // 【功能 8】FIRE 退休計算
         function calculateFIRE() {
             const monthExpense = Number(document.getElementById('fire-month-expense').value) || 0;
             const targetNumber = monthExpense * 12 * 25;
