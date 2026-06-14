@@ -443,3 +443,112 @@
             .then(() => {
                 document.getElementById('ledger-amount').value = '';
                 document.getElementById('ledger-note').value = '';
+                syncCloudData();
+            })
+            .catch(err => alert('雲端傳送失敗: ' + err))
+            .finally(() => { btn.innerText = "傳送至雲端試算表"; btn.disabled = false; });
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('allocationChart').getContext('2d');
+            allocationChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: ['現金儲蓄', '外幣資產', '證券市值'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#06b6d4', '#f59e0b'], borderWidth: 2, borderColor: '#ffffff' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }, cutout: '70%' }
+            });
+        }
+
+        function renderDashboard() {
+            let cash = 0; appState.ledger.forEach(i => cash += (i.type === 'income' ? i.amount : -i.amount)); if(cash<0) cash=0; 
+            let stockWorth = 0; appState.stocks.forEach(s => stockWorth += (s.shares * (s.currentPrice || s.cost)));
+            let forexWorth = 0; appState.forex.forEach(f => forexWorth += (f.twdValue || 0));
+            const total = cash + stockWorth + forexWorth;
+
+            document.getElementById('total-cash').innerText = `$${cash.toLocaleString()}`;
+            document.getElementById('total-stock-worth').innerText = `$${Math.floor(stockWorth).toLocaleString()}`;
+            document.getElementById('total-forex-worth').innerText = `$${Math.floor(forexWorth).toLocaleString()}`;
+            document.getElementById('total-assets').innerText = `$${Math.floor(total).toLocaleString()}`;
+
+            if(allocationChart) { allocationChart.data.datasets[0].data = [cash, forexWorth, stockWorth]; allocationChart.update(); }
+            calculateFIRE();
+        }
+
+        function addNewStock() {
+            const sym = document.getElementById('stock-symbol').value.trim().toUpperCase();
+            const sh = document.getElementById('stock-shares').value;
+            const co = document.getElementById('stock-cost').value;
+            if(!sym || !sh) return alert('請填寫代碼與股數！');
+
+            const existingIndex = appState.stocks.findIndex(s => s.symbol === sym);
+            if (existingIndex >= 0) { appState.stocks[existingIndex].shares = Number(sh); appState.stocks[existingIndex].cost = Number(co) || appState.stocks[existingIndex].cost; } 
+            else { appState.stocks.push({ symbol: sym, shares: Number(sh), cost: Number(co)||0, currentPrice: Number(co)||0 }); }
+
+            localStorage.setItem('FIN_STOCKS', JSON.stringify(appState.stocks));
+            renderStocks();
+            renderDashboard();
+            document.getElementById('stock-symbol').value = '';
+            document.getElementById('stock-shares').value = '';
+            document.getElementById('stock-cost').value = '';
+        }
+
+        function removeStock(symbol) {
+            if(!confirm(`移除 ${symbol}？`)) return;
+            appState.stocks = appState.stocks.filter(s => s.symbol !== symbol);
+            localStorage.setItem('FIN_STOCKS', JSON.stringify(appState.stocks));
+            renderStocks();
+            renderDashboard();
+        }
+
+        function renderStocks() {
+            const container = document.getElementById('stock-list-container');
+            const totalProfitBadge = document.getElementById('stock-total-profit');
+            if(appState.stocks.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">無持股明細</p>`; return; }
+            let globalTotalProfit = 0;
+
+            container.innerHTML = appState.stocks.map((s) => {
+                const currentPrice = s.currentPrice || s.cost;
+                const totalCost = s.shares * s.cost; const currentWorth = s.shares * currentPrice;
+                const profit = currentWorth - totalCost; const roi = totalCost > 0 ? (profit / totalCost) * 100 : 0;
+                globalTotalProfit += profit;
+                return `
+                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-xs flex justify-between items-center">
+                        <div class="flex-1">
+                            <span class="font-black text-slate-800">${s.symbol}</span>
+                            <span class="text-[10px] text-slate-400 ml-1">${s.shares}股</span>
+                        </div>
+                        <div class="text-right mr-2">
+                            <p class="font-bold">$${Math.floor(currentWorth).toLocaleString()}</p>
+                            <p class="text-[10px] ${profit>=0?'text-emerald-600':'text-rose-600'}">${profit>=0?'+':''}${Math.floor(profit)} (${roi.toFixed(1)}%)</p>
+                        </div>
+                        <button onclick="removeStock('${s.symbol}')" class="text-slate-300 hover:text-rose-500 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </div>`;
+            }).join('');
+            lucide.createIcons();
+            renderDividendCalendar();
+        }
+
+        function syncCloudData() {
+            if(!appState.gasUrl) return;
+            const icon = document.getElementById('sync-icon');
+            if(icon) icon.classList.add('animate-spin');
+
+            fetch(appState.gasUrl)
+                .then(res => res.json())
+                .then(cloudData => {
+                    if(cloudData.stocks) {
+                        appState.stocks.forEach(localStock => {
+                            const found = cloudData.stocks.find(c => c.symbol === localStock.symbol || c.symbol.endsWith(':' + localStock.symbol));
+                            if(found) localStock.currentPrice = Number(found.price);
+                        });
+                        localStorage.setItem('FIN_STOCKS', JSON.stringify(appState.stocks));
+                    }
+                    if(cloudData.currencies) appState.forex = cloudData.currencies;
+                    if(cloudData.ledger) appState.ledger = cloudData.ledger;
+                    renderStocks(); renderDashboard();
+                })
+                .catch(err => console.error(err))
+                .finally(() => { if(icon) icon.classList.remove('animate-spin'); });
+        }
+    </script>
+</body>
+</html>
